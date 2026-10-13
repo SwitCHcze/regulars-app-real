@@ -21,7 +21,12 @@ Click the green **Code** button above, then **Download ZIP**. Unzip the folder a
 ## What's in this folder
 | File | What it does |
 |---|---|
-| `index.html` | The whole app in one file: screens, styles, fonts, code and example data. |
+| `index.html` | The page: all the app's screens. |
+| `app.js` | The app's code: sign-up, this week, group, vote, support, profile. |
+| `styles.css` | How it looks: colours, layout, light and dark mode, university themes. |
+| `demo.js` | Demo mode: answers the app's server requests with example data, so nothing is saved or sent. |
+| `demo-data.js` | The recorded example data the demo uses. |
+| `fonts/` | The app's fonts (Archivo, Figtree, JetBrains Mono), so it needs no outside requests. |
 | `manifest.webmanifest` | Lets phones install it as an app (name, colours, icon). |
 | `sw.js` | Lets the installed app open offline. |
 | `icons/` | App icons. |
