@@ -4,7 +4,6 @@
 
 Regulars puts university students into small groups of up to six who meet once a week for 8 weeks. It's the same people every week, so strangers become friends. It's free for students, and universities and halls pay a fee per term.
 
-👉 **Try the app:** https://switchcze.github.io/regulars-app-real/
 
 > This is a **demo copy**. It's the real Regulars student app, but the server has been swapped for recorded example data. The programme, venues, host and other students are made up. Nothing you enter is saved or sent.
 > Use the strip at the top of the phone to jump between stages: waiting list, offered a place, or in a group.
