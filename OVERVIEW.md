@@ -1,0 +1,57 @@
+# Regulars: project overview
+
+A short summary of the app, for giving context to Claude or anyone new to the project.
+
+## What it is
+Regulars puts university students into small groups of up to 6 that meet once a week, for 8 weeks, to do something easy (coffee, games, a walk, crafts, studying). It's the same people every week, because seeing familiar faces again and again is how strangers become friends.
+
+Tagline: "The same small group, once a week, for something easy."
+
+## Who it's for
+Students who find it hard to make friends. They're often the least likely to go looking for help, so Regulars reaches them through the university itself: halls, welcome week, Res Life and the wellbeing team. People join because they're new, because their friends are busy, or because big events and societies aren't their thing. Nobody has to say why, and quiet people are welcome.
+
+## Business model
+- Free for students, with no subscriptions.
+- Universities and halls pay a fee per term.
+- It works at any university: a student's university is detected from their university email.
+- Each university gets a version in its own colours. University of Portsmouth comes first.
+
+## How it works for a student
+1. **Sign up** (about a minute, 3 steps, no profile to write):
+   - Pick the activities you'd fancy.
+   - Optional: rule out days that never work, say how much chat suits you, and say what would make it easier to come.
+   - Enter your university email and confirm it with an emailed code (no password). Then give a first name, an optional picture (it stays on the phone and is never uploaded), confirm you're 18 or over, and agree to the terms.
+   - The app never asks about health, course, or why you're joining, and groups are never matched on these.
+2. **Waiting list**, then you're offered a place in a group of students who can make the same weekly time. Each group has a named, trained student host.
+   - You can "Meet a host first": a short, informal hello before you commit. It isn't counselling.
+3. **In a group**, the app has 4 tabs:
+   - **This week**: the plan, "I'm in" / "Can't make it", a count of who's coming (e.g. 3 of 6), where to meet with directions, cost (free), access info, what to do if the host is late, "Walk in together" (the host can meet you on the way), conversation starters, email reminders (5pm the day before and 2 hours before), and add to calendar.
+   - **Group**: the members, "Ask something privately", "This group isn't working for me", "Something made me uncomfortable", and an invite link (no reward).
+   - **Vote**: each week has two approved activity options at the same time and place. A tie or no votes means the first option goes ahead. Members can also suggest another time for a week and the group votes on it.
+   - **Support**: Samaritans 116 123, Shout 85258, Student Space, university services, 999 for emergencies, private messages to the Regulars coordinator, and reporting a concern.
+4. **Profile**: pause (your place is kept), edit preferences, opt out of check-ins about missed sessions, light/dark mode, request a copy or deletion of your data, leave, sign out.
+
+## Attendance rules (deliberately gentle)
+- "Can't make it" works any week, with no reason needed and no limit.
+- Miss a few sessions without saying and you may get one friendly message. Nobody else is told.
+- If you go quiet for a long time, you're asked whether you want to keep your place. A person decides, never the app, and you're told first.
+- You can come back any time, though possibly to a different group.
+- Small weeks still go ahead if possible. If a session is cancelled, students are told and offered an alternative.
+
+## Privacy
+- **Your group sees:** first name, initial, what you'd fancy, and whether you're coming.
+- **Your group never sees:** your email, why you joined, your picture, private messages, or reports.
+- **Your university sees** totals only, never names or answers.
+- **Coordinators** see individual records so they can run the programme.
+
+## Programme settings (per university/pilot)
+8 weeks, groups of 4 to 6 (target 6), a cap on participants (e.g. 48 in the pilot), enrolment open or closed, and allowed university email domains.
+
+## Tech
+- Mobile-first web app (PWA), installable on the home screen. Plain HTML, CSS and JavaScript, with British English copy.
+- **This repository** holds the front-end prototype: everything runs in the browser with example data, and there is no server yet (see `README.md`).
+- **The connected version** talks to a Django backend: `/api/state/` for everything shown on screen, plus `/api/auth/...` and `/api/decline/`. Login uses django-allauth email codes, and staff accounts also use an authenticator app (2FA). Every change is saved by the server before the screen updates.
+- Supports light/dark mode, per-university themes, and an offline notice.
+
+## Tone
+Warm, low-pressure and plain. No guilt, no streaks, no gamification. "Quiet is fine."
