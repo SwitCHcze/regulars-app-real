@@ -22,6 +22,12 @@ function perksFor(p) {
 }
 const clone = o => JSON.parse(JSON.stringify(o));
 
+// After week 2: the 2-week taster check is open, and week 3 is next.
+const taster = clone(S.active);
+Object.assign(taster.participant.session, { week: 3, first_time: false });
+taster.participant.taster = { weeks: 2, check_open: true, answered: null };
+S.taster = taster;
+
 // Week 8, end of the cycle: the meetups are over and the private "again?" question is open.
 const end = clone(S.active);
 end.participant.session = null;
@@ -30,5 +36,5 @@ end.participant.cycle = { week: 8, weeks: 8, again_open: true, again_answered: f
 S.cycleend = end;
 
 // Perks for verified members only: waiting list, offered a place, in a group, paused.
-['waiting', 'offered', 'active', 'arrival', 'notgoing', 'weekvote', 'paused', 'cycleend'].forEach(k => { S[k].participant.perks = perksFor(S[k].participant); });
+['waiting', 'offered', 'active', 'arrival', 'notgoing', 'weekvote', 'paused', 'taster', 'cycleend'].forEach(k => { S[k].participant.perks = perksFor(S[k].participant); });
 })(window.REGULARS_SNAPSHOTS);

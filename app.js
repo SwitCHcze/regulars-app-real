@@ -729,6 +729,7 @@ function offerHTML(o) {
     <h2 id="offer-h">${esc(o.group)}</h2>
     <div class="pwhen"><b>${esc(o.slot.day)}s, ${esc(o.slot.time)}</b><span>${esc(o.slot.venue.name)}</span><small>Meeting point: ${esc(o.slot.venue.meeting_point)}${o.host ? ` · Host: ${esc(o.host.name)}` : ''}</small></div>
     <ul class="facts on-accent"><li>${o.accepted} of at least ${o.minimum} said yes so far</li>${o.options.map(a => `<li>${esc(a.name)}</li>`).join('')}<li>Free</li></ul>
+    <p class="fs15">Start with 2 weeks. After that, you can stay for the rest or step away, no questions asked.</p>
     <p class="msg">${o.accepted < o.minimum ? `The group starts once at least ${o.minimum} people say yes; the first date is confirmed then. ` : ''}Please reply by ${esc(o.expires)}.</p>
     <div class="row"><button class="btn lime" data-act="offer" data-answer="accept" data-id="${o.membership_id}">I’m in</button>
     <button class="btn ghost" data-go="sc-choices">Not this one</button></div>
@@ -821,7 +822,7 @@ function renderWeek() {
   const s = p.session;
   const inGroup = !!p.group && (p.status === 'active' || p.status === 'paused');
   let card = '';
-  if (STATUS_CARDS[p.status]) card = STATUS_CARDS[p.status](p);
+  if (STATUS_CARDS[p.status] && !(p.status === 'withdrawn' && tasterReply === 'away')) card = STATUS_CARDS[p.status](p);   // just stepped away: the gentler card above says it
   if (p.status === 'offered' && p.offer) {
     card = offerHTML(p.offer);
     const mine = p.offer_choices && p.offer_choices.vote;
@@ -1044,7 +1045,6 @@ function updateVoteDot() {
 
 /* ==========================================================
    13d. ONE CLEAR NEXT STEP, ON THE DAY
-   13e. END OF THE CYCLE: AGAIN?
    ========================================================== */
 // One line at the top of This week: what to do now, with at most one button.
 function renderNextStep(p) {
@@ -1104,7 +1104,9 @@ function renderCheckIn(p) {
   const c = p.cycle;
   let html = '';
   againDraft = null; againSaved = false;   // the again screen starts from what's saved
-  if (againOpen(p)) html = c.again_answered
+  if (tasterReply) html = tasterReplyHTML();
+  else if (tasterOpen(p)) html = tasterHTML(p.taster);
+  else if (againOpen(p)) html = c.again_answered
     ? `<div class="card soft-note"><b>Thanks. We’ll use this when we form next term’s groups.</b><p class="hint">You can change your answers until the end of the week.</p><button class="minibtn ghostmini selfstart" data-go="sc-again">Change my answers</button></div>`
     : `<section class="card check" aria-labelledby="again-h"><span class="label">End of the ${esc(c.weeks)} weeks</span>
       <p class="v-head" id="again-h">That’s the ${esc(c.weeks)} weeks. Fancy doing this again with any of them?</p>
@@ -1147,6 +1149,30 @@ $('sc-again').addEventListener('submit', async e => {
 
 
 /* ==========================================================
+   13f. THE 2-WEEK TASTER
+   ----------------------------------------------------------
+   New members try 2 sessions first. After the second, one
+   question: keep your place for the rest? Stepping away is as
+   easy as "Can't make it": one tap, no reason, no guilt.
+   ========================================================== */
+const tasterOpen = p => !!(p.taster && p.taster.check_open && p.taster.answered == null && p.status === 'active' && p.group);
+let tasterReply = null;   // 'stay' or 'away', just after answering
+
+function tasterHTML(t) {
+  return `<section class="card check" aria-labelledby="taster-h"><span class="label">Your first ${esc(t.weeks)} weeks</span>
+    <p class="v-head" id="taster-h">You’ve done ${esc(t.weeks)} weeks. Want to keep your place for the rest?</p>
+    <p class="hint">Either is fine. No reason needed.</p>
+    <div class="row"><button class="btn primary" data-act="taster" data-stay="yes">Keep my place</button><button class="btn ghost" data-act="taster" data-stay="no">Step away for now</button></div></section>`;
+}
+function tasterReplyHTML() {
+  return tasterReply === 'stay'
+    ? '<div class="card soft-note" role="status"><b>Great, see you next week.</b></div>'
+    : `<div class="card soft-note" role="status"><b>That’s fine.</b><p>You can come back any time, though it may be a different group.</p>
+      ${S.participant.status === 'withdrawn' ? '<button class="btn ghost" data-act="rejoin">Rejoin the waiting list</button>' : ''}</div>`;
+}
+
+
+/* ==========================================================
    14. BEFORE YOU GO
    ----------------------------------------------------------
    Walking in is often harder than signing up. This card
@@ -1161,7 +1187,7 @@ function renderBefore(s, p) {
   $('dirLink').href = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(v.area);
   $('dirLink').textContent = `Directions to ${v.name} ↗`;
   $('fArrive').textContent = plan.first_five_minutes;
-  $('fWho').textContent = `Up to ${p.group.capacity} people from your group, the same each week.` + (s.host ? ` ${s.host.name}, a Regulars host (a trained student), is there to say hi and get things started${s.host.recognise ? ` – ${s.host.recognise}` : ''}.` : ' A Regulars host will be confirmed.') + ` About ${s.duration} minutes.`;
+  $('fWho').textContent = `Up to ${p.group.capacity} people from your group, the same each week.` + (s.host ? ` ${s.host.name}, your volunteer host (a trained student), is there to say hi and get things started${s.host.recognise ? ` – ${s.host.recognise}` : ''}.` : ' A Regulars host will be confirmed.') + ` About ${s.duration} minutes.`;
   $('fAccess').textContent = v.checked_on
     ? `Step-free: ${v.step_free}. Accessible toilet: ${v.accessible_toilet}. Seating: ${v.seating}. ${v.noise}. Checked ${v.checked_on}.`
     : 'Not checked yet for this venue. Ask the coordinator privately and they’ll find out before you go.';
@@ -1234,7 +1260,12 @@ document.addEventListener('click', async e => {
   else if (act === 'to-plan') { $('planHero').scrollIntoView({ block: 'start' }); return; }
   else if (act === 'to-top') { $('statusCard').scrollIntoView({ block: 'start' }); return; }
   else if (act === 'see-meetup') { go('sc-week'); const hero = $('planHero'); if (!hero.hidden) hero.scrollIntoView({ block: 'start' }); return; }
-  else if (act === 'rejoin') ok = await send('rejoin', {});
+  else if (act === 'rejoin') { ok = await send('rejoin', {}); if (ok) tasterReply = null; }
+  else if (act === 'taster') {
+    const stay = b.dataset.stay === 'yes';
+    ok = await send('taster', { stay });
+    if (ok) { tasterReply = stay ? 'stay' : 'away'; rerender(); const card = $('checkCard').firstElementChild; if (card) { card.tabIndex = -1; card.focus(); } return; }
+  }
   else if (act === 'switch') { ok = await send('offer/switch', { membership_id: S.participant.offer.membership_id, group_id: Number(b.dataset.id) }); if (ok) return go('sc-week'); }
   else if (act === 'propose') { ok = await send('time/propose', { membership_id: S.participant.offer.membership_id, slot_id: Number(b.dataset.id) }); if (ok) return go('sc-week'); }
   else if (act === 'vote-yes' || act === 'vote-no') {
@@ -1579,7 +1610,7 @@ document.addEventListener('visibilitychange', async () => {
 window.REGULARS_DEMO_REFRESH = async () => {
   clearDraft();
   draft = { programme: null, invite: '', interest_ids: [], open: false, interaction_style: '', unavailable_days: [], needs_step_free: false, prefers_quieter: false };
-  codeStage = 'email'; nameTyped = false; howFollowUp = false; redeeming = null; perkFilter = 'all';
+  codeStage = 'email'; nameTyped = false; howFollowUp = false; tasterReply = null; redeeming = null; perkFilter = 'all';
   await fetchState(); applyProgramme();
   go(S.participant ? 'sc-week' : 'sc-welcome');
 };

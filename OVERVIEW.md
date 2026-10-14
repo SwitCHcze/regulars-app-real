@@ -24,6 +24,7 @@ Students who find it hard to make friends. They're often the least likely to go 
    - The app never asks about health, course, or why you're joining, and groups are never matched on these.
 2. **Waiting list**, then you're offered a place in a group of students who can make the same weekly time. Each group has a named, trained student host.
    - You can "Meet a host first": a short, informal hello before you commit. It isn't counselling.
+   - **2-week taster:** the offer says "Start with 2 weeks. After that, you can stay for the rest or step away, no questions asked." After the second session, This week asks "You've done 2 weeks. Want to keep your place for the rest?" with "Keep my place" and "Step away for now". Stepping away is one tap, like "Can't make it": "That's fine. You can come back any time, though it may be a different group."
 3. **In a group**, the app has 5 tabs:
    - **This week**: the plan, "I'm in" / "Can't make it", a count of who's coming (e.g. 3 of 6), where to meet with directions, cost (free), access info, what to do if the host is late, "Walk in together" (the host can meet you on the way), conversation starters, email reminders (5pm the day before and 2 hours before), and add to calendar.
    - **Group**: the members, "Ask something privately", "This group isn't working for me", "Something made me uncomfortable", and an invite link (no reward).
@@ -109,3 +110,16 @@ These are answered by `demo.js` in this repo. The Django backend needs to provid
 - Each `group.members[]` needs a stable `id` while `again_open` is true (members are listed by first name and initial only).
 
 `POST /api/again/` with `{ "keep_group": bool, "fresh_group": bool, "again_with": [member ids] }` saves the answers and returns the fresh state. The demo keeps them in memory only.
+
+### 2-week taster
+`participant.taster` in `/api/state/`:
+```json
+"taster": { "weeks": 2, "check_open": true, "answered": null }
+```
+- The card shows while `check_open` is true, `answered` is `null` and the member is active in a group.
+- After answering, `answered` is `"stay"` (and `check_open` false), or the member steps away (the demo treats this like leaving: status `withdrawn`, label "Stepped away", and they can rejoin the waiting list any time).
+
+`POST /api/taster/` with `{ "stay": bool }` returns the fresh state.
+
+### Demo stages
+The demo strip gains "After week 2: taster check" (`taster`, the `active` snapshot at week 3 with the check open) and "Week 8: end of cycle" (`cycleend`, the `active` snapshot with no upcoming meetup and `cycle.again_open`). Both are built in a hand-written block at the end of `demo-data.js`, alongside the made-up partner offers.

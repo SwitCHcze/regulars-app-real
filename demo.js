@@ -140,6 +140,12 @@ function handle(path, body) {
       ['preferred_name', 'interest_ids', 'interaction_style', 'unavailable_days', 'email_reminders', 'no_followup_contact'].forEach(k => { if (k in body) me[k] = body[k]; });
       applyMe();
       return [200, cur];
+    case 'taster':
+      if (!p || !p.taster || !p.taster.check_open) return [400, { error: NOT_IN_DEMO }];
+      if (body.stay) { Object.assign(p.taster, { check_open: false, answered: 'stay' }); return [200, cur]; }
+      setStage('withdrawn');   // stepped away: like leaving, and they can rejoin any time
+      cur.participant.status_label = 'Stepped away';
+      return [200, cur];
     case 'again':
       // Kept in memory for this stage only. Nobody is told, and there's no match reveal.
       if (!p || !p.cycle || !p.cycle.again_open) return [400, { error: NOT_IN_DEMO }];
@@ -171,7 +177,7 @@ window.fetch = async (url, opts = {}) => {
 };
 
 // ---- The demo strip: say what this is, and jump between stages ----
-const STAGES = { anon: 'Start (not signed up)', waiting: 'On the waiting list', offered: 'Offered a place', active: 'In a group, week 1', cycleend: 'Week 8: end of cycle' };
+const STAGES = { anon: 'Start (not signed up)', waiting: 'On the waiting list', offered: 'Offered a place', active: 'In a group, week 1', taster: 'After week 2: taster check', cycleend: 'Week 8: end of cycle' };
 window.REGULARS_DEMO = {
   jump(name) {
     if (name === 'anon') { Object.assign(me, { email: 'you@student.example.test', preferred_name: 'You', interest_ids: [], unavailable_days: [], interaction_style: '' }); }
