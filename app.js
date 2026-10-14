@@ -180,15 +180,15 @@ async function send(path, body) {
 /* ==========================================================
    4. MOVING BETWEEN SCREENS
    ========================================================== */
-const ALL_SCREENS = ['sc-loading', 'sc-welcome', 'sc-how', 'sc-pick', 'sc-fit', 'sc-verify', 'sc-match', 'sc-choices', 'sc-intro', 'sc-week', 'sc-group', 'sc-vote', 'sc-support', 'sc-perks', 'sc-redeem', 'sc-ask', 'sc-me'];
+const ALL_SCREENS = ['sc-loading', 'sc-welcome', 'sc-how', 'sc-pick', 'sc-fit', 'sc-verify', 'sc-match', 'sc-choices', 'sc-intro', 'sc-week', 'sc-group', 'sc-vote', 'sc-support', 'sc-perks', 'sc-redeem', 'sc-again', 'sc-ask', 'sc-me'];
 const TAB_SCREENS = ['sc-week', 'sc-group', 'sc-vote', 'sc-support', 'sc-perks'];
-const MEMBER_SCREENS = ['sc-me', 'sc-choices', 'sc-redeem'];   // also need you to have joined
+const MEMBER_SCREENS = ['sc-me', 'sc-choices', 'sc-redeem', 'sc-again'];   // also need you to have joined
 let currentScreen = 'sc-loading';
 let lastTab = 'sc-week';
 
 const RENDER = {
   'sc-welcome': renderWelcome, 'sc-how': renderHow, 'sc-pick': renderPick, 'sc-fit': renderFit, 'sc-verify': renderVerify,
-  'sc-intro': renderIntro, 'sc-choices': renderChoices, 'sc-week': renderWeek, 'sc-group': renderGroup, 'sc-vote': renderVote, 'sc-support': renderSupport, 'sc-perks': renderPerks, 'sc-redeem': renderRedeem, 'sc-me': renderProfile,
+  'sc-intro': renderIntro, 'sc-choices': renderChoices, 'sc-week': renderWeek, 'sc-group': renderGroup, 'sc-vote': renderVote, 'sc-support': renderSupport, 'sc-perks': renderPerks, 'sc-redeem': renderRedeem, 'sc-again': renderAgain, 'sc-me': renderProfile,
 };
 
 function go(id, { focus = true } = {}) {
@@ -196,13 +196,14 @@ function go(id, { focus = true } = {}) {
   if ((TAB_SCREENS.includes(id) || MEMBER_SCREENS.includes(id)) && !(S && S.participant)) id = 'sc-welcome';
   // Perks are only for verified members (the server leaves them out for everyone else).
   if ((id === 'sc-perks' || id === 'sc-redeem') && !S.participant.perks) id = 'sc-week';
+  if (id === 'sc-again' && !againOpen(S.participant)) id = 'sc-week';
   ALL_SCREENS.forEach(s => $(s).hidden = s !== id);
   currentScreen = id;
   if (TAB_SCREENS.includes(id)) lastTab = id;
-  const hasTabs = TAB_SCREENS.includes(id) || ['sc-me', 'sc-ask', 'sc-redeem'].includes(id);
+  const hasTabs = TAB_SCREENS.includes(id) || ['sc-me', 'sc-ask', 'sc-redeem', 'sc-again'].includes(id);
   $('appbar').hidden = !hasTabs;
   $('tabs').hidden = !hasTabs;
-  const tab = id === 'sc-redeem' ? 'sc-perks' : id;
+  const tab = { 'sc-redeem': 'sc-perks', 'sc-again': 'sc-week' }[id] || id;
   document.querySelectorAll('#tabs [data-tab]').forEach(t => t.dataset.tab === tab ? t.setAttribute('aria-current', 'page') : t.removeAttribute('aria-current'));
   if (RENDER[id]) RENDER[id]();
   updateTopBar();
@@ -228,9 +229,10 @@ function updateTopBar() {
   const p = S && S.participant;
   $('perksTab').hidden = !(p && p.perks);
   paintPicture($('meAv'), initialOf(p && p.preferred_name));
-  const session = p && p.session;
-  $('weekLabel').hidden = !session;
-  if (session) { $('weekNo').textContent = session.week; $('weekOf').textContent = S.programme.weeks; }
+  // The week of this meetup, or (once the meetups are over) the week the cycle reached.
+  const week = p && ((p.session && p.session.week) || (p.cycle && p.cycle.week));
+  $('weekLabel').hidden = !week;
+  if (week) { $('weekNo').textContent = week; $('weekOf').textContent = S.programme.weeks; }
 }
 
 
@@ -828,7 +830,10 @@ function renderWeek() {
   if (p.status === 'paused' && p.paused_until) card = `<div class="card warn"><b>Taking a break until ${esc(p.paused_until)}</b><p>${p.group ? 'Your place is kept and reminders are off.' : 'You’re not being matched to a group during the break. Your place on the waiting list is kept.'}</p><button class="btn primary" data-act="resume">Come back now</button></div>`;
   if (p.status === 'paused' && !p.paused_until && !p.group) card = `<div class="card"><b>You don’t have a group at the moment</b><p>Your place went to someone waiting after we didn’t hear back. You can come back any time; your old group may not have space.</p><button class="btn primary" data-act="rejoin">Rejoin the waiting list</button></div>`;
   if (inGroup && p.group.status === 'forming') card += `<div class="card"><b>Your group is forming</b><p>${p.group.accepted} of at least ${p.group.minimum} people have said yes. Your first meetup date is confirmed once the group reaches ${p.group.minimum}.</p></div>`;
-  if (inGroup && p.group.status !== 'forming' && !s) card += '<div class="card"><b>No more meetups scheduled</b><p>There’s nothing else in the calendar for your group.</p></div>';
+  const cycleDone = p.cycle && p.cycle.week >= p.cycle.weeks;
+  if (inGroup && p.group.status !== 'forming' && !s) card += cycleDone
+    ? `<div class="card"><b>That was your group’s last meetup this term</b><p>Thanks for coming along, whenever you could.</p></div>`
+    : '<div class="card"><b>No more meetups scheduled</b><p>There’s nothing else in the calendar for your group.</p></div>';
   const tv = inGroup && p.group.time_vote;
   if (tv) card += tv.status === 'open'
     ? `<div class="card vote-mini"><div><span class="label">Group vote</span><b>Move ${tv.scope === 'session' ? 'this week’s meetup' : 'the group'} to ${esc(tv.to_short)}?</b><small class="muted">${tv.yes} yes · ${tv.needed} needed</small></div><button class="minibtn" data-go="sc-vote">${tv.my_answer === null && !tv.asked_by_me ? 'Vote' : 'Open'}</button></div>`
@@ -840,6 +845,7 @@ function renderWeek() {
   if (p.programme_ending) card += `<div class="card soft-note"><b>The programme is ending soon</b><p>Want to stay in touch with people from your group? You can share your email with others who also choose to.</p><a class="linkout" href="${p.links.stay_in_touch}">Stay in touch (optional) ↗</a>${p.links.feedback ? ` <a class="linkout" href="${p.links.feedback}">Three short feedback questions ↗</a>` : ''}</div>`;
   if (p.intro && p.status !== 'awaiting_group') card += `<div class="card soft-note"><b>Your introduction:</b> ${esc(p.intro.status_label)}${p.intro.when ? ' – ' + esc(p.intro.when) : ''}</div>`;
   $('statusCard').innerHTML = card;
+  renderCheckIn(p);
   renderNextStep(p);
   tickVotes();
 
@@ -1038,6 +1044,7 @@ function updateVoteDot() {
 
 /* ==========================================================
    13d. ONE CLEAR NEXT STEP, ON THE DAY
+   13e. END OF THE CYCLE: AGAIN?
    ========================================================== */
 // One line at the top of This week: what to do now, with at most one button.
 function renderNextStep(p) {
@@ -1078,6 +1085,66 @@ function renderToday(s, p) {
   </section>`;
   tickVotes();
 }
+
+/* ==========================================================
+   13e. END OF THE CYCLE: AGAIN?
+   ----------------------------------------------------------
+   After week 8, a private question: who would you happily be
+   in a group with again? Answers are only used when the next
+   term's groups are formed. Nobody is told who said what, and
+   there is no "it's a match" moment: if two people both say
+   yes, they're just more likely to be grouped together.
+   ========================================================== */
+const againOpen = p => !!(p && p.group && p.cycle && p.cycle.again_open);
+let againDraft = null;   // your answers while the screen is open
+let againSaved = false;
+
+// Cards at the top of This week for the two check-ins: the 2-week taster and "again?".
+function renderCheckIn(p) {
+  const c = p.cycle;
+  let html = '';
+  againDraft = null; againSaved = false;   // the again screen starts from what's saved
+  if (againOpen(p)) html = c.again_answered
+    ? `<div class="card soft-note"><b>Thanks. We’ll use this when we form next term’s groups.</b><p class="hint">You can change your answers until the end of the week.</p><button class="minibtn ghostmini selfstart" data-go="sc-again">Change my answers</button></div>`
+    : `<section class="card check" aria-labelledby="again-h"><span class="label">End of the ${esc(c.weeks)} weeks</span>
+      <p class="v-head" id="again-h">That’s the ${esc(c.weeks)} weeks. Fancy doing this again with any of them?</p>
+      <p class="hint">Only you see your answers.</p>
+      <button class="btn primary" data-go="sc-again">Have a think</button></section>`;
+  $('checkCard').innerHTML = html;
+}
+
+function renderAgain() {
+  const p = S.participant, c = p.cycle;
+  if (!againDraft) {
+    const mine = c.my_again || {};
+    againDraft = { keep_group: !!mine.keep_group, fresh_group: !!mine.fresh_group, again_with: (mine.again_with || []).slice() };
+  }
+  $('againMembers').innerHTML = p.group.members.filter(m => !m.is_me).map(m =>
+    `<label class="sw"><span class="sw-who"><span class="av" aria-hidden="true">${esc(initialOf(m.name))}</span><span><b>${esc(m.name)}</b><small>Happy to be in a group with them again</small></span></span>
+    <input type="checkbox" role="switch" data-member="${esc(m.id)}"${againDraft.again_with.includes(m.id) ? ' checked' : ''}></label>`).join('');
+  $('againNext').innerHTML = choiceBtn('tier', 'keep_group', 'Keep this group going as it is', 'The same people, if enough of you would like that', againDraft.keep_group)
+    + choiceBtn('tier', 'fresh_group', 'I’d like a fresh group next time', 'New faces, same easy things', againDraft.fresh_group);
+  $('againDone').textContent = againSaved ? 'Thanks. We’ll use this when we form next term’s groups.' : '';
+}
+$('againMembers').addEventListener('change', e => {
+  const id = Number(e.target.dataset.member);
+  againDraft.again_with = e.target.checked ? [...againDraft.again_with, id] : againDraft.again_with.filter(x => x !== id);
+});
+$('againNext').addEventListener('click', e => {
+  const b = e.target.closest('[data-id]'); if (!b) return;
+  const key = b.dataset.id, other = key === 'keep_group' ? 'fresh_group' : 'keep_group';
+  againDraft[key] = !againDraft[key];   // tap again to unselect
+  if (againDraft[key]) againDraft[other] = false;   // one or the other, or neither
+  renderAgain();
+  $('againNext').querySelector(`[data-id="${key}"]`).focus();
+});
+$('sc-again').addEventListener('submit', async e => {
+  e.preventDefault();
+  if (!await send('again', againDraft)) return;
+  againSaved = true;
+  renderAgain();
+});
+
 
 /* ==========================================================
    14. BEFORE YOU GO
@@ -1208,7 +1275,7 @@ function renderGroup() {
     $('membersNote').textContent = '';
   } else {
     $('groupSub').textContent = `${g.slot.day}s, ${g.slot.time} at ${g.slot.venue.name}. The same people every week, for ${prog.weeks} weeks.`;
-    $('members').innerHTML = g.members.map(m => `<li>${m.is_me ? '<span class="av" data-me></span>' : `<span class="av">${esc(initialOf(m.name))}</span>`}<div class="who"><b>${esc(m.is_me ? 'You' : m.name)}</b><small>${esc(m.likes.join(', ') || 'Open to anything')}</small></div>${statusPill(m.coming)}</li>`).join('');
+    $('members').innerHTML = g.members.map(m => `<li>${m.is_me ? '<span class="av" data-me></span>' : `<span class="av">${esc(initialOf(m.name))}</span>`}<div class="who"><b>${esc(m.is_me ? 'You' : m.name)}</b><small>${esc(m.likes.join(', ') || 'Open to anything')}</small></div>${p.session ? statusPill(m.coming) : ''}</li>`).join('');
     const me = $('members').querySelector('[data-me]');
     if (me) paintPicture(me, initialOf(p.preferred_name));
     $('membersNote').textContent = p.session ? `Replies are for ${p.session.start.day} ${p.session.start.date}.` : '';

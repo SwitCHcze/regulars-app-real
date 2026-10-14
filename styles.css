@@ -642,3 +642,12 @@ body.busy .btn,body.busy .minibtn,body.busy .tier{cursor:progress}
 .redeem-code{font:700 clamp(30px,10vw,40px)/1 var(--mono);letter-spacing:.06em;background:var(--soft);border-radius:18px;padding:18px 16px;width:100%;overflow-wrap:anywhere}
 .redeem-who{display:flex;align-items:center;gap:10px;font-size:18px}
 .redeem-who .av{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font:800 16px var(--display)}
+
+/* Check-ins on This week (2-week taster, end of the cycle) */
+#checkCard:empty{display:none}
+.check{border-color:color-mix(in srgb,var(--accent) 45%,var(--line))}
+.selfstart{justify-self:start}
+.center-self{justify-self:center}
+.sw-who{display:flex;align-items:center;gap:12px;min-width:0}
+.sw-who .av{width:38px;height:38px;flex:none;border-radius:50%;display:grid;place-items:center;font:750 14px var(--display);background:var(--soft);color:var(--ink)}
+#againMembers{gap:16px}

@@ -20,6 +20,15 @@ function perksFor(p) {
   const mine = offers.find(o => o.is_group_venue);
   return { group_venue_offer_id: mine ? mine.id : null, offers };
 }
+const clone = o => JSON.parse(JSON.stringify(o));
+
+// Week 8, end of the cycle: the meetups are over and the private "again?" question is open.
+const end = clone(S.active);
+end.participant.session = null;
+end.participant.group.members.forEach((m, i) => { m.id = 101 + i; m.coming = 'none'; });
+end.participant.cycle = { week: 8, weeks: 8, again_open: true, again_answered: false, my_again: null };
+S.cycleend = end;
+
 // Perks for verified members only: waiting list, offered a place, in a group, paused.
-['waiting', 'offered', 'active', 'arrival', 'notgoing', 'weekvote', 'paused'].forEach(k => { S[k].participant.perks = perksFor(S[k].participant); });
+['waiting', 'offered', 'active', 'arrival', 'notgoing', 'weekvote', 'paused', 'cycleend'].forEach(k => { S[k].participant.perks = perksFor(S[k].participant); });
 })(window.REGULARS_SNAPSHOTS);

@@ -39,6 +39,13 @@ UNiDAYS-style discounts at local businesses, for verified members only (waiting 
 - Tapping an offer shows a code to show at the till, with your first name and the initial picture only. Partners never see names or emails.
 - No countdowns, limited stock, streaks or "use it or lose it".
 
+## End of the cycle: "again?"
+After week 8, This week asks: "That's the 8 weeks. Fancy doing this again with any of them?" It's private and mutual:
+- For each other member (first name and initial): "Happy to be in a group with them again". Plus "Keep this group going as it is" or "I'd like a fresh group next time" (one or the other, or neither).
+- "Only you see your answers. Nobody is ever told who said no." There's no match reveal: if two people both say yes, they're just more likely to be grouped together next term.
+- Answers can be changed until the end of the week. Skipping is fine ("Not now"), with no reminders beyond one gentle email.
+- Answers are only collected and stored for forming next term's groups. No automatic matching.
+
 ## Attendance rules (deliberately gentle)
 - "Can't make it" works any week, with no reason needed and no limit.
 - Miss a few sessions without saying and you may get one friendly message. Nobody else is told.
@@ -89,3 +96,16 @@ These are answered by `demo.js` in this repo. The Django backend needs to provid
 - `group_venue_offer_id` is `null` unless the member is in a group whose venue is a partner.
 
 `POST /api/perk_redeem/` with `{ "offer_id": 1 }` returns `{ "code": "REG-7K2P" }`. The code is shown at the till with the member's first name and initial. The demo makes a code locally and saves nothing.
+
+### End of the cycle: "again?"
+`participant.cycle` in `/api/state/`:
+```json
+"cycle": { "week": 8, "weeks": 8, "again_open": true, "again_answered": false,
+           "my_again": { "keep_group": false, "fresh_group": false, "again_with": [101, 103] } }
+```
+- `again_open` is true from the end of week 8 until the end of that week; the card and screen only show while it's true and the member is in a group.
+- `my_again` is the member's own saved answers (or `null`), so they can change them. Never include anyone else's answers.
+- `week` is also used for the "Week 8 of 8" label once there's no upcoming `session`.
+- Each `group.members[]` needs a stable `id` while `again_open` is true (members are listed by first name and initial only).
+
+`POST /api/again/` with `{ "keep_group": bool, "fresh_group": bool, "again_with": [member ids] }` saves the answers and returns the fresh state. The demo keeps them in memory only.

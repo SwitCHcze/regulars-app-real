@@ -183,6 +183,7 @@
 
       <section class="screen" id="sc-week" hidden>
         <div class="hello"><h2 id="hello">Hi there</h2><p id="helloSub">Here’s your week.</p></div>
+        <div id="checkCard"></div>
         <div id="nextStep"></div>
         <div class="card" id="wentCard" hidden></div>
         <div id="testNote" class="card soft-note" hidden><b>Test programme.</b> Test accounts and made-up venues only.</div>
@@ -323,6 +324,22 @@
           <p class="v-note">Run by the university, not Regulars. Check the link for this term’s times.</p>
         </div>
       </section>
+
+      <!-- ===== End of the cycle: would you do it again? (private) ===== -->
+
+      <form class="screen" id="sc-again" hidden novalidate>
+        <button type="button" class="back" data-go="sc-week">← Back</button>
+        <div class="title"><h2>Fancy doing this again?</h2><p>Tell us who you’d be happy to be in a group with next term. It’s only used when new groups are formed.</p></div>
+        <div class="card soft-note"><b>Only you see your answers. Nobody is ever told who said no.</b></div>
+        <fieldset class="q"><legend>People from your group</legend><div class="card" id="againMembers"></div></fieldset>
+        <fieldset class="q"><legend>Next time <span class="opt-tag">optional</span></legend><div class="grid10" id="againNext"></div></fieldset>
+        <div>
+          <button class="btn primary" type="submit">Save my answers</button>
+          <p class="msg mt8" id="againDone" role="status"></p>
+          <p class="hint center" id="againHint">You can change your answers until the end of the week.</p>
+        </div>
+        <button type="button" class="back center-self" data-go="sc-week">Not now</button>
+      </form>
 
       <!-- ===== Perks: discounts near campus for members ===== -->
 
