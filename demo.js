@@ -140,6 +140,12 @@ function handle(path, body) {
       ['preferred_name', 'interest_ids', 'interaction_style', 'unavailable_days', 'email_reminders', 'no_followup_contact'].forEach(k => { if (k in body) me[k] = body[k]; });
       applyMe();
       return [200, cur];
+    case 'perk_redeem': {
+      // A fresh code each time, made here. Nothing is saved and no partner is told.
+      if (!p || !p.perks || !p.perks.offers.some(o => o.id === Number(body.offer_id))) return [400, { error: 'That offer isn’t available.' }];
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      return [200, { code: 'REG-' + Array.from({ length: 4 }, () => chars[Math.floor(Math.random() * chars.length)]).join('') }];
+    }
     case 'support': case 'concern': return [400, { error: NOT_SENT }];
     default: return [400, { error: NOT_IN_DEMO }];
   }

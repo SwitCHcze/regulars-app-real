@@ -27,6 +27,7 @@
    18. PRIVATE MESSAGES
    19. INVITE SOMEONE
    20. SUPPORT SCREEN
+   20b. PERKS
    21. SOMETHING TO TALK ABOUT
    22. YOUR PROFILE
    23. INSTALL AS AN APP
@@ -152,7 +153,8 @@ async function post(url, body) {
 }
 
 let busy = false;
-// A change to your Regulars record. On success the server sends back the fresh state.
+// A change to your Regulars record. On success the server sends back the fresh state
+// (returned as well, for the few replies that carry something else, like a perk code).
 async function send(path, body) {
   if (!online()) { toast('You’re offline, so nothing was sent. Try again when you’re connected.', true); return false; }
   if (busy) return false;
@@ -164,7 +166,7 @@ async function send(path, body) {
     if (!r.ok) { toast((r.data && r.data.error) || 'That didn’t work. Nothing was changed.', true); return false; }
     if (r.data && r.data.programme !== undefined) { S = r.data; CSRF = S.csrf || CSRF; }
     if (r.data && r.data.message) toast(r.data.message);
-    return true;
+    return r.data || {};
   } catch (e) {
     toast('Couldn’t reach the Regulars server. Nothing was changed.', true);
     return false;
@@ -178,26 +180,30 @@ async function send(path, body) {
 /* ==========================================================
    4. MOVING BETWEEN SCREENS
    ========================================================== */
-const ALL_SCREENS = ['sc-loading', 'sc-welcome', 'sc-how', 'sc-pick', 'sc-fit', 'sc-verify', 'sc-match', 'sc-choices', 'sc-intro', 'sc-week', 'sc-group', 'sc-vote', 'sc-support', 'sc-ask', 'sc-me'];
-const TAB_SCREENS = ['sc-week', 'sc-group', 'sc-vote', 'sc-support'];
+const ALL_SCREENS = ['sc-loading', 'sc-welcome', 'sc-how', 'sc-pick', 'sc-fit', 'sc-verify', 'sc-match', 'sc-choices', 'sc-intro', 'sc-week', 'sc-group', 'sc-vote', 'sc-support', 'sc-perks', 'sc-redeem', 'sc-ask', 'sc-me'];
+const TAB_SCREENS = ['sc-week', 'sc-group', 'sc-vote', 'sc-support', 'sc-perks'];
+const MEMBER_SCREENS = ['sc-me', 'sc-choices', 'sc-redeem'];   // also need you to have joined
 let currentScreen = 'sc-loading';
 let lastTab = 'sc-week';
 
 const RENDER = {
   'sc-welcome': renderWelcome, 'sc-how': renderHow, 'sc-pick': renderPick, 'sc-fit': renderFit, 'sc-verify': renderVerify,
-  'sc-intro': renderIntro, 'sc-choices': renderChoices, 'sc-week': renderWeek, 'sc-group': renderGroup, 'sc-vote': renderVote, 'sc-support': renderSupport, 'sc-me': renderProfile,
+  'sc-intro': renderIntro, 'sc-choices': renderChoices, 'sc-week': renderWeek, 'sc-group': renderGroup, 'sc-vote': renderVote, 'sc-support': renderSupport, 'sc-perks': renderPerks, 'sc-redeem': renderRedeem, 'sc-me': renderProfile,
 };
 
 function go(id, { focus = true } = {}) {
   // The tabs only make sense once you've joined.
-  if ((TAB_SCREENS.includes(id) || id === 'sc-me' || id === 'sc-choices') && !(S && S.participant)) id = 'sc-welcome';
+  if ((TAB_SCREENS.includes(id) || MEMBER_SCREENS.includes(id)) && !(S && S.participant)) id = 'sc-welcome';
+  // Perks are only for verified members (the server leaves them out for everyone else).
+  if ((id === 'sc-perks' || id === 'sc-redeem') && !S.participant.perks) id = 'sc-week';
   ALL_SCREENS.forEach(s => $(s).hidden = s !== id);
   currentScreen = id;
   if (TAB_SCREENS.includes(id)) lastTab = id;
-  const hasTabs = TAB_SCREENS.includes(id) || id === 'sc-me' || id === 'sc-ask';
+  const hasTabs = TAB_SCREENS.includes(id) || ['sc-me', 'sc-ask', 'sc-redeem'].includes(id);
   $('appbar').hidden = !hasTabs;
   $('tabs').hidden = !hasTabs;
-  document.querySelectorAll('#tabs [data-tab]').forEach(tab => tab.dataset.tab === id ? tab.setAttribute('aria-current', 'page') : tab.removeAttribute('aria-current'));
+  const tab = id === 'sc-redeem' ? 'sc-perks' : id;
+  document.querySelectorAll('#tabs [data-tab]').forEach(t => t.dataset.tab === tab ? t.setAttribute('aria-current', 'page') : t.removeAttribute('aria-current'));
   if (RENDER[id]) RENDER[id]();
   updateTopBar();
   if (focus) {
@@ -220,6 +226,7 @@ document.querySelectorAll('#tabs [data-tab]').forEach(tab => tab.onclick = () =>
 function updateTopBar() {
   updateVoteDot();
   const p = S && S.participant;
+  $('perksTab').hidden = !(p && p.perks);
   paintPicture($('meAv'), initialOf(p && p.preferred_name));
   const session = p && p.session;
   $('weekLabel').hidden = !session;
@@ -1030,7 +1037,7 @@ function updateVoteDot() {
 }
 
 /* ==========================================================
-   13d. PERKS: ONE CLEAR NEXT STEP, ON THE DAY
+   13d. ONE CLEAR NEXT STEP, ON THE DAY
    ========================================================== */
 // One line at the top of This week: what to do now, with at most one button.
 function renderNextStep(p) {
@@ -1298,6 +1305,71 @@ function renderSupport() {
 
 
 /* ==========================================================
+   20b. PERKS
+   ----------------------------------------------------------
+   Discounts at local partner places, for verified members.
+   Your group's venue comes first, so the focus stays on
+   meeting up. No countdowns, no "only 3 left", nothing to use
+   up. Partners never see your name: the till sees a code,
+   your first name and your initial.
+   ========================================================== */
+const PERK_TYPES = { cafe: 'Cafe', food: 'Food', games: 'Games bar', climbing: 'Climbing', cinema: 'Cinema' };
+const PERK_FILTERS = [['all', 'All'], ['food', 'Food and drink'], ['games', 'Games'], ['active', 'Active'], ['other', 'Other']];
+const perkFilterOf = type => ({ cafe: 'food', food: 'food', games: 'games', climbing: 'active' })[type] || 'other';
+const perkTypeLabel = type => PERK_TYPES[type] || (type ? type[0].toUpperCase() + type.slice(1) : 'Other');
+let perkFilter = 'all';
+let redeeming = null;   // { offer, code } while the redeem view is open
+
+function perkCard(o) {
+  return `<button type="button" class="perk${o.is_group_venue ? ' venue' : ''}" data-perk="${esc(o.id)}">
+    <span class="perk-top"><b>${esc(o.business)}</b><span class="pill wait">${esc(perkTypeLabel(o.type))}</span></span>
+    <span class="perk-offer">${esc(o.offer)}</span>
+    <small>${esc([o.area, o.conditions].filter(Boolean).join(' · '))}</small>
+  </button>`;
+}
+
+function renderPerks() {
+  const perks = S.participant.perks;
+  const venue = perks.offers.find(o => o.id === perks.group_venue_offer_id);
+  const others = perks.offers.filter(o => o !== venue);
+  const shown = others.filter(o => perkFilter === 'all' || perkFilterOf(o.type) === perkFilter);
+  let html = '';
+  if (venue) html += `<div class="sec"><h3 class="sec-title">Your group’s venue</h3>${perkCard(venue)}</div>`;
+  if (!others.length) html += `<div class="card"><p class="hint">No offers here yet. We’re adding places near campus.</p></div>`;
+  else {
+    html += `<div class="sec"><h3 class="sec-title">${venue ? 'More places near campus' : 'Places near campus'}</h3>
+      <div class="chips" role="group" aria-label="Show offers by type">${PERK_FILTERS.map(([id, label]) => `<button type="button" class="chip" data-filter="${id}" aria-pressed="${perkFilter === id}">${label}</button>`).join('')}</div>
+      ${shown.length ? shown.map(perkCard).join('') : '<p class="hint">Nothing of this type yet. We’re adding places near campus.</p>'}</div>`;
+  }
+  $('perksBody').innerHTML = html;
+}
+$('perksBody').addEventListener('click', async e => {
+  const chip = e.target.closest('[data-filter]');
+  if (chip) { perkFilter = chip.dataset.filter; renderPerks(); $('perksBody').querySelector(`[data-filter="${perkFilter}"]`).focus(); return; }
+  const card = e.target.closest('[data-perk]');
+  if (!card) return;
+  const offer = S.participant.perks.offers.find(o => String(o.id) === card.dataset.perk);
+  const r = await send('perk_redeem', { offer_id: offer.id });
+  if (!r || !r.code) return;
+  redeeming = { offer, code: r.code };
+  go('sc-redeem');
+});
+
+function renderRedeem() {
+  if (!redeeming) return go('sc-perks');
+  const { offer, code } = redeeming;
+  const name = S.participant.preferred_name;
+  $('redeemBody').innerHTML = `<div class="title"><span class="label">${esc(perkTypeLabel(offer.type))}</span><h2>${esc(offer.business)}</h2><p>${esc(offer.offer)}</p></div>
+    <div class="card redeem">
+      <p class="redeem-code" aria-label="Code: ${esc(code.split('').join(' '))}">${esc(code)}</p>
+      <div class="redeem-who"><span class="av ${picture.colour}" aria-hidden="true">${esc(initialOf(name))}</span><b>${esc(name)}</b></div>
+      <p class="v-head center">Show this at the till.</p>
+      ${offer.conditions ? `<p class="hint center">${esc(offer.conditions)}</p>` : ''}
+    </div>`;
+}
+
+
+/* ==========================================================
    21. SOMETHING TO TALK ABOUT
    ----------------------------------------------------------
    Easy questions for when you don't know what to say.
@@ -1440,7 +1512,7 @@ document.addEventListener('visibilitychange', async () => {
 window.REGULARS_DEMO_REFRESH = async () => {
   clearDraft();
   draft = { programme: null, invite: '', interest_ids: [], open: false, interaction_style: '', unavailable_days: [], needs_step_free: false, prefers_quieter: false };
-  codeStage = 'email'; nameTyped = false; howFollowUp = false;
+  codeStage = 'email'; nameTyped = false; howFollowUp = false; redeeming = null; perkFilter = 'all';
   await fetchState(); applyProgramme();
   go(S.participant ? 'sc-week' : 'sc-welcome');
 };

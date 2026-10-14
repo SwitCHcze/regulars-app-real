@@ -591,13 +591,14 @@ body.busy .btn,body.busy .minibtn,body.busy .tier{cursor:progress}
 .vote.done .v-clock{color:var(--muted)}
 .vote .row{margin-top:2px}
 
-.tabs{grid-template-columns:repeat(4,1fr)}
-.tabs button{position:relative}
+/* One column per visible tab (Perks only shows for verified members) */
+.tabs{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr)}
+.tabs button{position:relative;padding-inline:2px}
 .tabdot{position:absolute;top:6px;right:calc(50% - 16px);width:9px;height:9px;border-radius:50%;background:var(--bad);box-shadow:0 0 0 2px var(--surface)}
 .vote-mini{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .vote-mini b{display:block}
 
-/* Perks: one clear next step, on-the-day helper */
+/* One clear next step, on-the-day helper */
 .next{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--surface);border:1.5px solid var(--accent);border-radius:18px;padding:12px 14px}
 .next b{display:block;font-size:15px;line-height:1.3}
 .next small{color:var(--muted);font-size:13px}
@@ -623,3 +624,21 @@ body.busy .btn,body.busy .minibtn,body.busy .tier{cursor:progress}
 .demo-note{position:absolute;left:12px;right:12px;bottom:84px;z-index:9;background:var(--ink);color:var(--app);border-radius:14px;padding:10px 14px;font-size:14px;box-shadow:0 10px 30px -10px color-mix(in srgb,var(--ink) 60%,transparent)}
 .demo-about{display:grid;gap:8px}
 .demo-about p{font-size:14px}
+
+/* Perks: discounts near campus */
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{all:unset;box-sizing:border-box;cursor:pointer;border:1.5px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 12px;font-weight:600;font-size:13.5px}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--app);border-color:var(--ink)}
+.chip:focus-visible,.perk:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.perk{all:unset;box-sizing:border-box;cursor:pointer;display:grid;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:16px 18px;color:var(--ink)}
+.perk-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.perk-top b{font-size:16px;min-width:0}
+.perk-offer{font:750 18px/1.25 var(--display);font-stretch:104%}
+.perk small{color:var(--muted);font-size:13.5px;line-height:1.35}
+.perk.venue{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.perk.venue small{color:inherit;opacity:.85}
+.perk.venue .pill{background:color-mix(in srgb,var(--accent-ink) 16%,transparent);color:inherit}
+.redeem{justify-items:center;text-align:center;gap:16px;padding-block:24px}
+.redeem-code{font:700 clamp(30px,10vw,40px)/1 var(--mono);letter-spacing:.06em;background:var(--soft);border-radius:18px;padding:18px 16px;width:100%;overflow-wrap:anywhere}
+.redeem-who{display:flex;align-items:center;gap:10px;font-size:18px}
+.redeem-who .av{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font:800 16px var(--display)}

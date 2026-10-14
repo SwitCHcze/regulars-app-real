@@ -24,12 +24,20 @@ Students who find it hard to make friends. They're often the least likely to go 
    - The app never asks about health, course, or why you're joining, and groups are never matched on these.
 2. **Waiting list**, then you're offered a place in a group of students who can make the same weekly time. Each group has a named, trained student host.
    - You can "Meet a host first": a short, informal hello before you commit. It isn't counselling.
-3. **In a group**, the app has 4 tabs:
+3. **In a group**, the app has 5 tabs:
    - **This week**: the plan, "I'm in" / "Can't make it", a count of who's coming (e.g. 3 of 6), where to meet with directions, cost (free), access info, what to do if the host is late, "Walk in together" (the host can meet you on the way), conversation starters, email reminders (5pm the day before and 2 hours before), and add to calendar.
    - **Group**: the members, "Ask something privately", "This group isn't working for me", "Something made me uncomfortable", and an invite link (no reward).
    - **Vote**: each week has two approved activity options at the same time and place. A tie or no votes means the first option goes ahead. Members can also suggest another time for a week and the group votes on it.
    - **Support**: Samaritans 116 123, Shout 85258, Student Space, university services, 999 for emergencies, private messages to the Regulars coordinator, and reporting a concern.
+   - **Perks**: discounts at local partner places (see below). Also shown on the waiting list, when offered a place and while paused.
 4. **Profile**: pause (your place is kept), edit preferences, opt out of check-ins about missed sessions, light/dark mode, request a copy or deletion of your data, leave, sign out.
+
+## Perks
+UNiDAYS-style discounts at local businesses, for verified members only (waiting list, offered a place, in a group, paused). Never for anonymous visitors or people who have left.
+- If your group's venue is a partner, its deal is shown first and is the best offer, so the focus stays on meeting up.
+- Then a list of partner offers (business, type, offer, area, conditions), with filter chips: All, Food and drink, Games, Active, Other.
+- Tapping an offer shows a code to show at the till, with your first name and the initial picture only. Partners never see names or emails.
+- No countdowns, limited stock, streaks or "use it or lose it".
 
 ## Attendance rules (deliberately gentle)
 - "Can't make it" works any week, with no reason needed and no limit.
@@ -55,3 +63,29 @@ Students who find it hard to make friends. They're often the least likely to go 
 
 ## Tone
 Warm, low-pressure and plain. No guilt, no streaks, no gamification. "Quiet is fine."
+
+## State fields and endpoints added for the demo
+These are answered by `demo.js` in this repo. The Django backend needs to provide the same.
+
+### Perks
+`participant.perks` in `/api/state/`. Leave it out (or `null`) for anyone who isn't a verified member; the Perks tab is hidden then.
+```json
+"perks": {
+  "group_venue_offer_id": 1,
+  "offers": [
+    {
+      "id": 1,
+      "business": "Shelf Life Café",
+      "type": "cafe",
+      "offer": "Free table for your group, 20% off drinks and cakes",
+      "conditions": "During your group's meetup",
+      "area": "Library ground floor",
+      "is_group_venue": true
+    }
+  ]
+}
+```
+- `type` is one of `cafe`, `food`, `games`, `climbing`, `cinema` (anything else is filed under "Other").
+- `group_venue_offer_id` is `null` unless the member is in a group whose venue is a partner.
+
+`POST /api/perk_redeem/` with `{ "offer_id": 1 }` returns `{ "code": "REG-7K2P" }`. The code is shown at the till with the member's first name and initial. The demo makes a code locally and saves nothing.
