@@ -34,7 +34,7 @@ function prepare(name) {
 }
 
 // You: what you typed while joining. Applied to every recorded stage.
-const me = { email: 'you@student.example.test', preferred_name: 'You', interest_ids: [], unavailable_days: [], interaction_style: '', email_reminders: true, no_followup_contact: false };
+const me = { email: 'you@student.example.test', preferred_name: 'You', interest_ids: [], unavailable_days: [], interaction_style: '', email_reminders: true, no_followup_contact: false, friend_with: null };
 let stage = 'anon';
 let cur = prepare('anon');
 
@@ -44,6 +44,7 @@ function applyMe() {
   if (!p) return;
   Object.assign(p, { email: me.email, preferred_name: me.preferred_name, interest_ids: me.interest_ids.slice(), unavailable_days: me.unavailable_days.slice(),
     interaction_style: me.interaction_style, email_reminders: me.email_reminders, no_followup_contact: me.no_followup_contact });
+  if (p.friend) p.friend.with = me.friend_with;
   const names = cur.programme.activities.filter(a => me.interest_ids.includes(a.id)).map(a => a.name);
   if (p.group) p.group.members.forEach(m => { if (m.is_me) { m.name = me.preferred_name; m.likes = names; } });
 }
@@ -84,6 +85,8 @@ function handle(path, body) {
         preferred_name: String(body.preferred_name || 'You').slice(0, 40), interest_ids: body.interest_ids || [],
         unavailable_days: body.unavailable_days || [], interaction_style: body.interaction_style || '', email_reminders: body.email_reminders !== false,
       });
+      // Joined with a friend's link: the server looks up whose it is; the demo takes the name from the link.
+      if (body.friend) me.friend_with = (new URLSearchParams(location.search).get('from') || '').replace(/[^\p{L}' -]/gu, '').trim().slice(0, 20) || 'your friend';
       setStage('waiting');
       return [200, Object.assign({}, cur, { message: 'You’re enrolled.' })];
     case 'intro': {
@@ -149,7 +152,7 @@ function handle(path, body) {
     case 'again':
       // Kept in memory for this stage only. Nobody is told, and there's no match reveal.
       if (!p || !p.cycle || !p.cycle.again_open) return [400, { error: NOT_IN_DEMO }];
-      p.cycle.my_again = { keep_group: !!body.keep_group, fresh_group: !!body.fresh_group, again_with: (body.again_with || []).map(Number) };
+      p.cycle.my_again = { keep_group: !!body.keep_group, fresh_group: !!body.fresh_group, again_with: (body.again_with || []).map(Number), host_interest: !!body.host_interest };
       p.cycle.again_answered = true;
       return [200, cur];
     case 'perk_redeem': {
@@ -180,7 +183,7 @@ window.fetch = async (url, opts = {}) => {
 const STAGES = { anon: 'Start (not signed up)', waiting: 'On the waiting list', offered: 'Offered a place', active: 'In a group, week 1', taster: 'After week 2: taster check', cycleend: 'Week 8: end of cycle' };
 window.REGULARS_DEMO = {
   jump(name) {
-    if (name === 'anon') { Object.assign(me, { email: 'you@student.example.test', preferred_name: 'You', interest_ids: [], unavailable_days: [], interaction_style: '' }); }
+    if (name === 'anon') { Object.assign(me, { email: 'you@student.example.test', preferred_name: 'You', interest_ids: [], unavailable_days: [], interaction_style: '', friend_with: null }); }
     else if (!me.interest_ids.length) me.interest_ids = [cur.programme.activities[0].id];
     setStage(name);
     if (window.REGULARS_DEMO_REFRESH) window.REGULARS_DEMO_REFRESH();

@@ -8,11 +8,15 @@ Regulars puts university students into small groups of up to 6 that meet once a 
 Tagline: "The same small group, once a week, for something easy."
 
 ## Who it's for
-Students who find it hard to make friends. They're often the least likely to go looking for help, so Regulars reaches them through the university itself: halls, welcome week, Res Life and the wellbeing team. People join because they're new, because their friends are busy, or because big events and societies aren't their thing. Nobody has to say why, and quiet people are welcome.
+Students who find it hard to make friends. They're often the least likely to go looking for help, so Regulars reaches them through the university itself. It leads with halls, welcome week, the Students' Union and societies; Res Life and the wellbeing team are channels among several. People join because they're new, because their friends are busy, or because big events and societies aren't their thing. Nobody has to say why, quiet people are welcome, and you can bring a friend.
+
+**Activities first.** To students, Regulars is "something easy to do each week", never "make friends" or "beat loneliness". The loneliness and retention message is for universities only, so joining never signals "I'm lonely".
 
 ## Business model
 - Free for students, with no subscriptions.
 - Universities and halls pay a fee per term.
+- Local partner businesses pay for Perks (see below): a small commission each time a member uses an offer at launch, then a monthly listing fee and featured placement as a group venue once usage figures prove the value. This second income grows with the number of members, not just the number of universities.
+- Hosts are trained student volunteers, and hosting counts towards employability awards, so it doesn't need to be paid. One host can look after 2 or 3 groups at different times, and members from a previous cycle can become hosts.
 - It works at any university: a student's university is detected from their university email.
 - Each university gets a version in its own colours. University of Portsmouth comes first.
 
@@ -22,7 +26,8 @@ Students who find it hard to make friends. They're often the least likely to go 
    - Optional: rule out days that never work, say how much chat suits you, and say what would make it easier to come.
    - Enter your university email and confirm it with an emailed code (no password). Then give a first name, an optional picture (it stays on the phone and is never uploaded), confirm you're 18 or over, and agree to the terms.
    - The app never asks about health, course, or why you're joining, and groups are never matched on these.
-2. **Waiting list**, then you're offered a place in a group of students who can make the same weekly time. Each group has a named, trained student host.
+2. **Waiting list**, then you're offered a place in a group of students who can make the same weekly time. Each group has a named, trained volunteer student host.
+   - **Bring a friend:** on the waiting list you get your own link ("Share my link"). Whoever joins with it is put in the same group as you, and you see their first name ("You're joining with Sam"). The friend's welcome screen says "Sam would like you to come along. Join with this link and you'll be put in the same group."
    - You can "Meet a host first": a short, informal hello before you commit. It isn't counselling.
    - **2-week taster:** the offer says "Start with 2 weeks. After that, you can stay for the rest or step away, no questions asked." After the second session, This week asks "You've done 2 weeks. Want to keep your place for the rest?" with "Keep my place" and "Step away for now". Stepping away is one tap, like "Can't make it": "That's fine. You can come back any time, though it may be a different group."
 3. **In a group**, the app has 5 tabs:
@@ -30,22 +35,28 @@ Students who find it hard to make friends. They're often the least likely to go 
    - **Group**: the members, "Ask something privately", "This group isn't working for me", "Something made me uncomfortable", and an invite link (no reward).
    - **Vote**: each week has two approved activity options at the same time and place. A tie or no votes means the first option goes ahead. Members can also suggest another time for a week and the group votes on it.
    - **Support**: Samaritans 116 123, Shout 85258, Student Space, university services, 999 for emergencies, private messages to the Regulars coordinator, and reporting a concern.
-   - **Perks**: discounts at local partner places (see below). Also shown on the waiting list, when offered a place and while paused.
+   - **Perks**: discounts at local partner places (see below). Also shown on the waiting list, when offered a place, while paused and after the 8 weeks end.
 4. **Profile**: pause (your place is kept), edit preferences, opt out of check-ins about missed sessions, light/dark mode, request a copy or deletion of your data, leave, sign out.
 
 ## Perks
-UNiDAYS-style discounts at local businesses, for verified members only (waiting list, offered a place, in a group, paused). Never for anonymous visitors or people who have left.
-- If your group's venue is a partner, its deal is shown first and is the best offer, so the focus stays on meeting up.
+UNiDAYS-style discounts at local, independent businesses (the ones UNiDAYS and Student Beans don't cover), for verified members only (waiting list, offered a place, in a group, paused, and at the end of the cycle). Never for anonymous visitors or people who have left. Perks give members a reason to keep the app between weekly sessions, during breaks and after their 8 weeks, which makes them easier to place in next term's groups. "I'm on it for the discounts" is also an easy reason to join.
+- If your group's venue is a partner, its deal is shown first and is the best offer, so the focus stays on meeting up and Regulars never turns into just a discount app.
 - Then a list of partner offers (business, type, offer, area, conditions), with filter chips: All, Food and drink, Games, Active, Other.
 - Tapping an offer shows a code to show at the till, with your first name and the initial picture only. Partners never see names or emails.
 - No countdowns, limited stock, streaks or "use it or lose it".
+- The pilot starts with 5 to 10 Portsmouth venues near campus.
 
 ## End of the cycle: "again?"
 After week 8, This week asks: "That's the 8 weeks. Fancy doing this again with any of them?" It's private and mutual:
 - For each other member (first name and initial): "Happy to be in a group with them again". Plus "Keep this group going as it is" or "I'd like a fresh group next time" (one or the other, or neither).
 - "Only you see your answers. Nobody is ever told who said no." There's no match reveal: if two people both say yes, they're just more likely to be grouped together next term.
+- Optional: "I'd be up for hosting a group". Hosts are trained student volunteers and it counts towards employability awards. Only the Regulars team sees this, and a coordinator decides who is asked.
 - Answers can be changed until the end of the week. Skipping is fine ("Not now"), with no reminders beyond one gentle email.
-- Answers are only collected and stored for forming next term's groups. No automatic matching.
+- Groups that clicked can carry on as a regular group.
+
+## Matching, in phases
+- **Phase 1 (now):** a coordinator forms groups on availability and activity choices, as the prototype does. Mutual "again?" yeses are kept together (or near each other), and so are friends who joined with each other's link.
+- **Phase 2 (after several cycles):** use the stored "again?" answers to predict which mixes of people work. Not built: it needs real data first, so the app only collects and stores the answers for now.
 
 ## Attendance rules (deliberately gentle)
 - "Can't make it" works any week, with no reason needed and no limit.
@@ -70,7 +81,7 @@ After week 8, This week asks: "That's the 8 weeks. Fancy doing this again with a
 - Supports light/dark mode, per-university themes, and an offline notice.
 
 ## Tone
-Warm, low-pressure and plain. No guilt, no streaks, no gamification. "Quiet is fine."
+Warm, low-pressure and plain. No guilt, no streaks, no gamification. "Quiet is fine." Student-facing copy is about easy things to do each week, never about making friends or loneliness.
 
 ## State fields and endpoints added for the demo
 These are answered by `demo.js` in this repo. The Django backend needs to provide the same.
@@ -102,14 +113,14 @@ These are answered by `demo.js` in this repo. The Django backend needs to provid
 `participant.cycle` in `/api/state/`:
 ```json
 "cycle": { "week": 8, "weeks": 8, "again_open": true, "again_answered": false,
-           "my_again": { "keep_group": false, "fresh_group": false, "again_with": [101, 103] } }
+           "my_again": { "keep_group": false, "fresh_group": false, "again_with": [101, 103], "host_interest": false } }
 ```
 - `again_open` is true from the end of week 8 until the end of that week; the card and screen only show while it's true and the member is in a group.
 - `my_again` is the member's own saved answers (or `null`), so they can change them. Never include anyone else's answers.
 - `week` is also used for the "Week 8 of 8" label once there's no upcoming `session`.
 - Each `group.members[]` needs a stable `id` while `again_open` is true (members are listed by first name and initial only).
 
-`POST /api/again/` with `{ "keep_group": bool, "fresh_group": bool, "again_with": [member ids] }` saves the answers and returns the fresh state. The demo keeps them in memory only.
+`POST /api/again/` with `{ "keep_group": bool, "fresh_group": bool, "again_with": [member ids], "host_interest": bool }` saves the answers and returns the fresh state. `host_interest` goes to coordinators only. The demo keeps them in memory only.
 
 ### 2-week taster
 `participant.taster` in `/api/state/`:
@@ -121,5 +132,18 @@ These are answered by `demo.js` in this repo. The Django backend needs to provid
 
 `POST /api/taster/` with `{ "stay": bool }` returns the fresh state.
 
+### Bring a friend
+`participant.friend` in `/api/state/` while the member is on the waiting list (leave it out to hide the card):
+```json
+"friend": { "link": "https://regulars.example/?via=friend&from=Sam&friend=K7P2", "with": null }
+```
+- `link` is the member's own link. The app reads `via=friend`, `from` (first name, shown on the friend's welcome screen) and `friend` (the code).
+- `with` is the first name of the person paired with this member (they joined with this member's link, or this member joined with theirs), otherwise `null`. One friend per member.
+
+`POST /api/enrol/` takes an optional `"friend": "K7P2"`. The server pairs the two members and keeps them in the same group when groups are formed. A link with `via=friend` but no `friend` code is a plain invite, as before ("They won't be told whether you join").
+
+### Invitation channels
+`invitation.channel` can also be `welcome_week`, `students_union` or `society`, alongside the existing ones, so links shared through those channels say where they came from.
+
 ### Demo stages
-The demo strip gains "After week 2: taster check" (`taster`, the `active` snapshot at week 3 with the check open) and "Week 8: end of cycle" (`cycleend`, the `active` snapshot with no upcoming meetup and `cycle.again_open`). Both are built in a hand-written block at the end of `demo-data.js`, alongside the made-up partner offers.
+The demo strip gains "After week 2: taster check" (`taster`, the `active` snapshot at week 3 with the check open) and "Week 8: end of cycle" (`cycleend`, the `active` snapshot with no upcoming meetup and `cycle.again_open`). Both are built in a hand-written block at the end of `demo-data.js`, alongside the made-up partner offers and the waiting list's `friend` link. On the waiting list, "Share my link" offers a link that opens the demo as the friend would see it; joining from there shows "You're joining with …".

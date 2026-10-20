@@ -2,7 +2,7 @@
 
 **The same small group, once a week, for something easy.**
 
-Regulars puts university students into small groups of up to six who meet once a week for 8 weeks. It's the same people every week, so strangers become friends. It's free for students, and universities and halls pay a fee per term.
+Regulars puts university students into small groups of up to six who meet once a week for 8 weeks. It's the same people every week, so strangers become friends. It's free for students: universities and halls pay a fee per term, and local partner businesses pay a small fee when members use their discounts.
 
 
 > This is a **demo copy**. It's the real Regulars student app, but the server has been swapped for recorded example data. The programme, venues, host and other students are made up. Nothing you enter is saved or sent.

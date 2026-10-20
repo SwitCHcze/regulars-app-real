@@ -25,7 +25,7 @@
    16. THIS WEEK'S OTHER OPTION
    17. GROUP SCREEN
    18. PRIVATE MESSAGES
-   19. INVITE SOMEONE
+   19. INVITE SOMEONE, OR BRING A FRIEND
    20. SUPPORT SCREEN
    20b. PERKS
    21. SOMETHING TO TALK ABOUT
@@ -46,6 +46,8 @@ const listWords = words => words.length > 1 ? words.slice(0, -1).join(', ') + ' 
 const initialOf = name => ((String(name || '').match(/\p{L}/u) || ['?'])[0]).toUpperCase();
 const params = new URLSearchParams(location.search);
 const INVITE = document.body.dataset.invite || params.get('invite') || '';
+// A friend's own link (?via=friend&from=Sam&friend=K7P2): join with it and you're kept in the same group.
+const FRIEND = (params.get('friend') || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 12);
 let CSRF = document.querySelector('meta[name="csrf-token"]').content;
 
 function iconFor(name) {
@@ -67,8 +69,9 @@ function saveDraft() { try { sessionStorage.setItem('regulars-draft', JSON.strin
 function clearDraft() { try { sessionStorage.removeItem('regulars-draft'); } catch (e) {} }
 
 let S = null;   // the latest state from the server
-let draft = loadDraft() || { programme: null, invite: '', interest_ids: [], open: false, interaction_style: '', unavailable_days: [], needs_step_free: false, prefers_quieter: false };
+let draft = loadDraft() || { programme: null, invite: '', friend: '', interest_ids: [], open: false, interaction_style: '', unavailable_days: [], needs_step_free: false, prefers_quieter: false };
 if (INVITE) draft.invite = INVITE;
+if (FRIEND) draft.friend = FRIEND;
 draft.unavailable_days = Array.isArray(draft.unavailable_days) ? draft.unavailable_days : [];   // older saved drafts
 
 // Your picture: a colour, or a photo. Both stay on this phone; the server never receives them.
@@ -283,6 +286,9 @@ function slotLine(slot) { return `${slot.day}, ${slot.time} · ${slot.venue.name
 const CHANNEL_LINES = {
   accommodation_onboarding: () => `From your accommodation team at ${programme().institution.name}.`,
   residential_life: () => `From Res Life at ${programme().institution.name}.`,
+  welcome_week: () => `From welcome week at ${programme().institution.name}.`,
+  students_union: () => `From the Students’ Union at ${programme().institution.name}.`,
+  society: () => `Shared by a society at ${programme().institution.name}. Open to every student.`,
   teaching_library: () => `Shared at ${programme().institution.name}. Open to every student.`,
   student_support: () => `Shared by student support at ${programme().institution.name}. Open to every student.`,
   email: () => `From ${programme().institution.name}.`,
@@ -297,7 +303,9 @@ function viaText() {
     const line = CHANNEL_LINES[inv.channel] ? CHANNEL_LINES[inv.channel]() + ' ' : '';
     return line + inv.message + (inv.host ? `\nYour host: ${inv.host.name}` : '');
   }
-  if (params.get('via') === 'friend') return `${friendFrom || 'A friend'} thought you might like this. They won’t be told whether you join.`;
+  if (params.get('via') === 'friend') return FRIEND
+    ? `${friendFrom || 'A friend'} would like you to come along. Join with this link and you’ll be put in the same group.`
+    : `${friendFrom || 'A friend'} thought you might like this. They won’t be told whether you join.`;
   return '';
 }
 
@@ -581,7 +589,7 @@ async function join() {
   $('obWait').hidden = false;
   $('obDone').hidden = true;
   const ok = await send('enrol', {
-    programme: draft.programme, invite: draft.invite, preferred_name: $('obName').value.trim(), unavailable_days: draft.unavailable_days,
+    programme: draft.programme, invite: draft.invite, friend: draft.friend || null, preferred_name: $('obName').value.trim(), unavailable_days: draft.unavailable_days,
     interest_ids: draft.interest_ids, interaction_style: draft.interaction_style, needs_step_free: draft.needs_step_free,
     prefers_quieter: draft.prefers_quieter, email_reminders: true, age_18_plus: true, agreed: true,
   });
@@ -653,7 +661,8 @@ function showJoined() {
     prog.next_matching_review ? `Groups are next reviewed on ${esc(prog.next_matching_review)}.` : 'The coordinator reviews the waiting list regularly.',
     'When a group is ready you’ll get an email offering a place. It’s only yours if you accept.',
     'Want to say hello first? You can meet a host while you wait.',
-  ].map(t => `<li>${t}</li>`).join('');
+    p.friend ? (p.friend.with ? `You’re joining with ${esc(p.friend.with)}, so you’ll be kept in the same group.` : 'Bringing a friend? Send them your link from This week and you’ll be kept in the same group.') : null,
+  ].filter(Boolean).map(t => `<li>${t}</li>`).join('');
   const ruledOut = p.unavailable_days.map(d => WEEK[d]);
   const likes = prog.activities.filter(a => p.interest_ids.includes(a.id)).map(a => a.name);
   const style = prog.styles.find(s => s.id === p.interaction_style);
@@ -823,6 +832,7 @@ function renderWeek() {
   const inGroup = !!p.group && (p.status === 'active' || p.status === 'paused');
   let card = '';
   if (STATUS_CARDS[p.status] && !(p.status === 'withdrawn' && tasterReply === 'away')) card = STATUS_CARDS[p.status](p);   // just stepped away: the gentler card above says it
+  if (p.status === 'awaiting_group' && p.friend) card += friendCardHTML(p.friend);   // friends are kept together when groups are formed
   if (p.status === 'offered' && p.offer) {
     card = offerHTML(p.offer);
     const mine = p.offer_choices && p.offer_choices.vote;
@@ -1119,8 +1129,9 @@ function renderAgain() {
   const p = S.participant, c = p.cycle;
   if (!againDraft) {
     const mine = c.my_again || {};
-    againDraft = { keep_group: !!mine.keep_group, fresh_group: !!mine.fresh_group, again_with: (mine.again_with || []).slice() };
+    againDraft = { keep_group: !!mine.keep_group, fresh_group: !!mine.fresh_group, again_with: (mine.again_with || []).slice(), host_interest: !!mine.host_interest };
   }
+  $('againHost').checked = againDraft.host_interest;
   $('againMembers').innerHTML = p.group.members.filter(m => !m.is_me).map(m =>
     `<label class="sw"><span class="sw-who"><span class="av" aria-hidden="true">${esc(initialOf(m.name))}</span><span><b>${esc(m.name)}</b><small>Happy to be in a group with them again</small></span></span>
     <input type="checkbox" role="switch" data-member="${esc(m.id)}"${againDraft.again_with.includes(m.id) ? ' checked' : ''}></label>`).join('');
@@ -1132,6 +1143,8 @@ $('againMembers').addEventListener('change', e => {
   const id = Number(e.target.dataset.member);
   againDraft.again_with = e.target.checked ? [...againDraft.again_with, id] : againDraft.again_with.filter(x => x !== id);
 });
+// Members from a previous cycle can become volunteer hosts. Only the Regulars team sees this.
+$('againHost').addEventListener('change', e => { againDraft.host_interest = e.target.checked; });
 $('againNext').addEventListener('click', e => {
   const b = e.target.closest('[data-id]'); if (!b) return;
   const key = b.dataset.id, other = key === 'keep_group' ? 'fresh_group' : 'keep_group';
@@ -1257,6 +1270,7 @@ document.addEventListener('click', async e => {
   else if (act === 'resume') ok = await send('pause', { action: 'resume' });
   else if (act === 'pause') ok = await send('pause', { weeks: Number(b.dataset.weeks) });
   else if (act === 'week-propose') { ok = await send('week/propose', { session_id: Number(b.dataset.session), slot_id: Number(b.dataset.id) }); }
+  else if (act === 'friend-share') { shareFriendLink(); return; }
   else if (act === 'to-plan') { $('planHero').scrollIntoView({ block: 'start' }); return; }
   else if (act === 'to-top') { $('statusCard').scrollIntoView({ block: 'start' }); return; }
   else if (act === 'see-meetup') { go('sc-week'); const hero = $('planHero'); if (!hero.hidden) hero.scrollIntoView({ block: 'start' }); return; }
@@ -1372,16 +1386,34 @@ $('askBack').onclick = () => go(askReturnTo);
 
 
 /* ==========================================================
-   19. INVITE SOMEONE
+   19. INVITE SOMEONE, OR BRING A FRIEND
    ----------------------------------------------------------
    A plain link to share with one person. No rewards, no
    counts, no leaderboards, and the inviter is never told
    whether the other person joined.
+
+   Bringing a friend is different: while you're on the
+   waiting list you get your own link, and whoever joins with
+   it is put in the same group as you. They choose that by
+   using the link, so you're told their first name.
    ========================================================== */
 $('shareInvite').onclick = () => {
   // Demo copy: there's no real link to share. The real app shares this message with a link to Regulars.
   $('shareMsg').textContent = 'In the real app this shares a link to Regulars with the message: “Check out my app Regulars, hope you will like it! :)”';
 };
+
+function friendCardHTML(f) {
+  if (f.with) return `<div class="card soft-note"><span class="label">Bringing a friend</span><b>You’re joining with ${esc(f.with)}.</b><p>You’ll be kept in the same group when groups are formed.</p></div>`;
+  return `<div class="card"><span class="label">Bringing a friend?</span>
+    <p>Send them your link. If they join with it, you’ll be put in the same group.</p>
+    <button class="btn ghost" data-act="friend-share">Share my link</button>
+    <p class="msg" id="friendMsg" role="status"></p></div>`;
+}
+function shareFriendLink() {
+  // Demo copy: there's no real link to share. The real app shares participant.friend.link.
+  const from = encodeURIComponent(S.participant.preferred_name || '');
+  $('friendMsg').innerHTML = `In the real app this shares your own link. <a class="linkout" href="?via=friend&amp;from=${from}&amp;friend=DEMO">See what your friend would see ↗</a>`;
+}
 
 
 /* ==========================================================
@@ -1609,7 +1641,7 @@ document.addEventListener('visibilitychange', async () => {
 // Demo copy: reload from the stand-in server after jumping to another stage.
 window.REGULARS_DEMO_REFRESH = async () => {
   clearDraft();
-  draft = { programme: null, invite: '', interest_ids: [], open: false, interaction_style: '', unavailable_days: [], needs_step_free: false, prefers_quieter: false };
+  draft = { programme: null, invite: '', friend: '', interest_ids: [], open: false, interaction_style: '', unavailable_days: [], needs_step_free: false, prefers_quieter: false };
   codeStage = 'email'; nameTyped = false; howFollowUp = false; tasterReply = null; redeeming = null; perkFilter = 'all';
   await fetchState(); applyProgramme();
   go(S.participant ? 'sc-week' : 'sc-welcome');

@@ -35,6 +35,9 @@ end.participant.group.members.forEach((m, i) => { m.id = 101 + i; m.coming = 'no
 end.participant.cycle = { week: 8, weeks: 8, again_open: true, again_answered: false, my_again: null };
 S.cycleend = end;
 
-// Perks for verified members only: waiting list, offered a place, in a group, paused.
+// Bring a friend: your own link while you're on the waiting list. `with` is set once someone joins with it.
+S.waiting.participant.friend = { link: '#demo', with: null };
+
+// Perks for verified members only: waiting list, offered a place, in a group, paused, and at the end of the cycle.
 ['waiting', 'offered', 'active', 'arrival', 'notgoing', 'weekvote', 'paused', 'taster', 'cycleend'].forEach(k => { S[k].participant.perks = perksFor(S[k].participant); });
 })(window.REGULARS_SNAPSHOTS);
